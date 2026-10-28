@@ -1,8 +1,30 @@
 {
   "permissions": {
     "defaultMode": "default",
-    "allow": ["Bash(pytest *)", "Bash(git status)", "Bash(git diff *)", "Bash(git log *)"],
-    "ask": ["Bash(git push *)"],
-    "deny": ["Read(./.env)", "Edit(./.env)"]
+    "allow":[
+      "Bash(pytest)",
+      "Bash(pytest *)",
+      "Bash(python -m pytest *)",
+      "Bash(git status)",
+      "Bass(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch *)"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(pip install *)",
+      "Bash(gh pr create *)"
+    ],
+    "deny": [
+      "Read(./.env)", 
+      "Edit(./.env)",
+      "Bash(cat .env)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push origin main)",
+      "Bash(gh pr merge *)"
+    ]
   }
 }
