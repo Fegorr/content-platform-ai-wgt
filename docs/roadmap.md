@@ -53,6 +53,7 @@ JWT_SECRET_KEY=<a long random string>
 - Integration tests against a separate test database, marked `@pytest.mark.integration` and skipped by default
 - Deploy (e.g. a free hosting service + MongoDB Atlas) with secrets set in the host, not in code
 - Hook in `.claude/settings.json` that blocks edits to `tests/` during the implementer step
+
 ## Definition of done for the whole platform
 - A new user can sign up, log in in `/docs`, log out, and create, list, read, update, publish and delete all four content types.
 - Only the author can change their content; only the author or an admin can delete it; drafts are private.
