@@ -6,7 +6,7 @@
       "Bash(pytest *)",
       "Bash(python -m pytest *)",
       "Bash(git status)",
-      "Bass(git diff)",
+      "Bashpip install(git diff)",
       "Bash(git diff *)",
       "Bash(git log *)",
       "Bash(git branch *)"

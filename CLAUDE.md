@@ -129,7 +129,7 @@ These questions have no answer yet. If your task depends on one of them, stop an
 4. implementer: writes code in src/ (and scripts/) until the tests pass. Never edits tests/.
 5. test-runner (green check): new tests and the full suite pass.
 6. code-reviewer: reviews the diff. Blocking issues go back to step 4 (or step 2 if a test is wrong).
-7. Main session: commit, git pull origin main --rebase, pytest, push, open the PR. Maria reviews and merges. Subagents never commit, push, open or merge PRs.
+7. Main session: commit, git pull origin main --rebase, pytest, push, open the PR. Maria reviews and merges. Subagents never commit, push, open or merge PRs. If the remote branch doesn't exist, do git push and create pr
 
 ## Workflow
 - We use TDD: red -> green -> refactor. The test-writer writes tests first; the implementer never changes tests.

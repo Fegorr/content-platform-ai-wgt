@@ -2,5 +2,5 @@
 .venv/
 __pycache__/
 .pytest_cache/
-CLAUDE.local.md
-.claude/settings.local.json
+CLAUDE.md
+.claude/settings.json
