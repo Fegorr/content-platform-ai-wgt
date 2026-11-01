@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+pydantic[email]
+email-validator
+pymongo
+certifi
+python-dotenv
+PyJWT
+pwdlib[argon2]
+python-multipart
+pytest
+httpx
