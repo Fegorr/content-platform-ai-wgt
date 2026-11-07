@@ -11,7 +11,7 @@ The single source of truth for names, fields, rules and API behaviour. CLAUDE.md
 `video`, `image`, `audio`, `document`
 
 ### BaseContent (abstract, Pydantic BaseModel + ABC)
-Model config: `str_strip_whitespace=True` (so a title of `"   "` fails `min_length=1`).
+Only `title` is whitespace-stripped (so a title of `"   "` fails `min_length=1`). Every other string field (`body`, `url`, `file_name`, `resolution`) keeps its spaces and newlines exactly as given. No model-wide `str_strip_whitespace`.
 
 | Field | Type | Rule | Set by |
 |---|---|---|---|
@@ -20,7 +20,7 @@ Model config: `str_strip_whitespace=True` (so a title of `"   "` fails `min_leng
 | author_id | UUID | required | server (from token) |
 | created_at | datetime | default `datetime.now(timezone.utc)` | server |
 | status | ContentStatus | default `draft` | server on create, PATCH after |
-| media_type | MediaType | required | server (from endpoint) |
+| media_type | MediaType | fixed per concrete class (default), see below | server (from endpoint) |
 
 Methods:
 - `publish()` -> sets status to `published`
@@ -39,13 +39,19 @@ Does not implement `get_preview()`.
 
 | Type | Extra fields | `get_preview()` returns |
 |---|---|---|
-| VideoFile | duration: int > 0 (seconds), resolution: str `^\d+x\d+$`, frame_rate: float > 0 | `"Duration: {duration} seconds\nResolution: {resolution}\nFrame rate: {frame_rate}"` |
+| VideoFile | duration: int > 0 (seconds), resolution: str `^[0-9]+x[0-9]+$`, frame_rate: float > 0 | `"Duration: {duration} seconds\nResolution: {resolution}\nFrame rate: {frame_rate}"` |
 | AudioFile | duration: int > 0 (seconds) | `"Duration: {duration} seconds"` |
-| ImageFile | resolution: str `^\d+x\d+$` | `"Resolution: {resolution}"` |
+| ImageFile | resolution: str `^[0-9]+x[0-9]+$` | `"Resolution: {resolution}"` |
 | DocumentFile | body: str min_length 1 | first 100 characters of `body` |
 
+Float fields (`frame_rate`) refuse `inf`, `-inf` and `nan` with a `ValidationError` (`allow_inf_nan=False`).
+
+`resolution` (VideoFile and ImageFile) only accepts the ASCII digits 0–9 in the form `WIDTHxHEIGHT`. Other kinds of digits (e.g. Arabic-Indic `"١٩٢٠x١٠٨٠"`) are refused with a `ValidationError`, and so is a resolution with spaces around it (e.g. `" 1920x1080 "`), since `resolution` is not stripped. Use `[0-9]`, not `\d`, because pydantic's regex engine treats `\d` as any Unicode digit.
+
+Each concrete class fixes its own `media_type` with a default: VideoFile is always `video`, ImageFile `image`, AudioFile `audio`, DocumentFile `document`. Creating one without `media_type` sets it automatically; creating one with a different `media_type` (e.g. `VideoFile(media_type="audio")`) raises a `ValidationError`.
+
 Extra domain methods:
-- `ImageFile.compress(percentage: float) -> str`: if `percentage <= 0` or `percentage >= 100` raise `ValueError("Invalid compression size")`. Otherwise return the new resolution string, each side `int(side * (1 - percentage / 100))`. Does not change the model. Example: `1200x2050` at 50 -> `600x1025`.
+- `ImageFile.compress(percentage: float) -> str`: if `percentage <= 0` or `percentage >= 100` raise `ValueError("Invalid compression size")`. Otherwise return the new resolution string, each side `int(side * (100 - percentage) / 100)`. Does not change the model. Examples: `1200x2050` at 50 -> `600x1025`; at 33 -> `804x1373`.
 - `DocumentFile.append_text(text: str) -> str`: if `text == ""` raise `ValueError("No changes have been made")`. Otherwise append to `body` and return the new body.
 
 ### Registry (`src/models/registry.py`)
