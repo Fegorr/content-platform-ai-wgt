@@ -8,9 +8,9 @@ Each task = one branch, one PR, one run of the agent pipeline. Write the full br
 |---|---|---|---|
 | 0 | Project setup | requirements.txt, pytest.ini, .gitignore, .env.example, empty `__init__.py` packages, one smoke test | `pytest` runs green; `.env` ignored |
 | 1 | Content + user domain models (incl. `UserRole`) | src/models/content.py, user.py, registry.py, tests/test_models.py | every rule in domain-spec "Content models" + "User model" has a test |
-| 2 | Lazy DB connection + ContentRepository | src/db/database.py, content_repository.py, tests | no connection at import; `_id` stripped; queries use `id`; `list_visible` filters in the query |
+| 2 | Config (`get_mongodb_uri` only) + lazy DB connection + ContentRepository (incl. `list_all`) | src/config.py, src/db/database.py, content_repository.py, tests | URI read at call time; no connection at import; `_id` stripped; queries use `id`; `list_visible` filters in the query |
 | 3 | UserRepository | src/db/user_repository.py, tests | get_by_id, get_by_email, create |
-| 4 | Config, hashing, JWT | src/config.py, src/auth/hashing.py, jwt.py, tests | secret read at call time; expired/invalid token → None |
+| 4 | Extend config.py with the JWT secret, hashing, JWT | src/config.py, src/auth/hashing.py, jwt.py, tests | secret read at call time; expired/invalid token → None |
 | 5 | Auth service, /login, get_current_user | src/services/auth_service.py, src/routers/auth.py, src/auth/dependencies.py, src/utils/dependencies.py, conftest fakes, tests | login form works in /docs; 401s carry WWW-Authenticate |
 | 6 | ContentService (incl. ownership, draft privacy, admin delete, `preview`, `can_edit`, `can_delete` on returned items) | src/services/content_service.py, tests (Mock repo) | all service rules in domain-spec, incl. the "Who can do what" table |
 | 7 | Video schemas + router | src/schemas/video.py, src/routers/videos.py, src/main.py, tests/test_videos.py | full required-test table passes |
@@ -39,7 +39,7 @@ JWT_SECRET_KEY=<a long random string>
 | 9 | Sign-up: `POST /register` + `AuthService.register_user` | real users can create accounts; duplicate emails are refused (409) |
 | 10 | `GET /users/me` + `PATCH /users/me/password` | see who is logged in; change password (wrong current → 400, same as old → 400) |
 | 11 | Logout: `jti` in tokens, `TokenBlocklistRepository`, `POST /logout`, `get_current_user` checks it | a logged-out token stops working straight away |
-| 12 | Admin: `require_admin`, `ContentRepository.list_all`, `GET /admin/content` | the admin from the use-case diagram can see all content (admin delete is already in the service from task 6) |
+| 12 | Admin: `require_admin`, `ContentService.list_all_content`, `GET /admin/content` | the admin from the use-case diagram can see all content (admin delete is already in the service from task 6) |
 | 13 | Admin seed script: `scripts/create_admin.py` | the only way to create an admin |
 | 14 | `GET /users/me/content` (all my items, any type, drafts included) | shows the user → many content relationship over HTTP |
 | 15 | MongoDB indexes: unique `id` in content, unique `email` in users, TTL index on `revoked_tokens.expires_at` | stops duplicates; the database deletes expired blocked tokens by itself |
@@ -61,3 +61,8 @@ JWT_SECRET_KEY=<a long random string>
 - Every use case in the use-case diagram has a working endpoint (file upload once it's decided).
 - Every endpoint has the required tests; CI runs them on every PR; nothing in tests touches real MongoDB.
 - No secret in the repo; the app starts without a DB connection at import.
+
+## Notes for later tasks
+- **Task 6:** ContentService must not call `update()` when there are no changes, and must only pass client-editable fields plus `status` (never `id`, `author_id`, `created_at` or `media_type`). Test both.
+- **Task 9:** `UserCreate` must refuse a name of only spaces.
+- **Database tests:** `tests/test_database.py` uses `importlib.reload`; if a later database test behaves oddly, check this first.
