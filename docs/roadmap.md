@@ -67,5 +67,6 @@ JWT_SECRET_KEY=<a long random string>
 - **Task 9:** `UserCreate` must refuse a name of only spaces.
 - **Database tests:** `tests/test_database.py` uses `importlib.reload`; if a later database test behaves oddly, check this first.
 - **Task 6:** annotate CONTENT_TYPES as Mapping[MediaType, type[BaseContent]].
+- **Task 6:** the docstring of `test_get_registry_content_types` in tests/test_models.py still says "maps each media_type string to its class"; the keys are now `MediaType` members. Update it when the registry is touched.
 - **Task 16:** run CI on the minimum Python version from CLAUDE.md.
 - **compress:** compress only returns a new resolution; consider renaming to compressed_resolution (needs a spec and test change). Discuss with Maria.

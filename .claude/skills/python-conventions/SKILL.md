@@ -17,7 +17,10 @@ Examples cite a file and a name (not a line number), so they stay valid when cod
 Good (`src/models/content.py` `MediaType` and `BaseContent.get_preview`, `src/models/registry.py` `CONTENT_TYPES`):
 ```python
 class MediaType(str, Enum):
+    """The four kinds of content the platform stores."""
+
     VIDEO = "video"
+    ...
 
 CONTENT_TYPES = MappingProxyType({...})
 
@@ -42,6 +45,7 @@ def _clean(document: dict) -> dict:
 - Public methods and attributes have no underscore. Internal helpers and attributes start with one `_`.
 - No double-underscore (`__name`) names unless needed to avoid a name clash in a subclass.
 - Use `@property` for a read-only value calculated from other fields.
+- Exception: methods named in CLAUDE.md or `docs/domain-spec.md` (`get_preview`, `compress`, `append_text`) stay methods, even when they only calculate a value.
 
 Good (`src/db/content_repository.py` `ContentRepository`): one job, said in one line; the public methods are the names from CLAUDE.md; the collection is internal.
 ```python
@@ -84,10 +88,13 @@ def __parse_resolution(self) -> tuple[int, int]: ...
 Good (`src/models/content.py` `ContentStatus` and `BaseContent.publish`):
 ```python
 class ContentStatus(str, Enum):
+    """Whether a content item is visible to everyone or only its author."""
+
     DRAFT = "draft"
     PUBLISHED = "published"
 
 def publish(self) -> None:
+    """Set the status to published."""
     self.status = ContentStatus.PUBLISHED
 ```
 
@@ -96,9 +103,9 @@ Good (`src/db/content_repository.py` `ContentRepository.list_visible`):
 {"status": ContentStatus.PUBLISHED.value}
 ```
 
-Bad (before the conventions refactor): a typed string. A typo here returns wrong results with no error.
+Bad (before the conventions refactor, excerpt): a typed string. A typo here returns wrong results with no error.
 ```python
-{"$or": [{"status": "published"}, {"author_id": user_id}]}
+{..., "$or": [{"status": "published"}, {"author_id": user_id}]}
 ```
 
 ## 4. Interfaces
@@ -140,9 +147,13 @@ class BaseContent(BaseModel):
 Good (`src/models/content.py` `VideoFile.get_preview` and `AudioFile.get_preview`): same signature as the base.
 ```python
 class VideoFile(MediaFile):
+    """A video with duration, resolution and frame rate."""
+
     def get_preview(self) -> str: ...
 
 class AudioFile(MediaFile):
+    """An audio file with a duration."""
+
     def get_preview(self) -> str: ...
 ```
 
@@ -201,8 +212,8 @@ def add_tags(item, tags: list[str] = []): ...
 ```
 
 ## 7. Comments
-- Every public class and public method has a docstring: one line saying what it does or returns.
-- Exception: an override that keeps the base method's meaning may skip its docstring (`VideoFile.get_preview`). All other public methods need one.
+- Every public class, method and function has a docstring: one line saying what it does or returns.
+- Exception: an override that keeps the base method's meaning may skip its docstring (`VideoFile.get_preview`). All other public methods need one. The exception covers methods only, never the class.
 - Exception: special methods (`__init__`, `__eq__` and so on) are exempt from the docstring rule.
 - Comments explain *why* (a reason, a trap, a decision), never *what* the next line does.
 

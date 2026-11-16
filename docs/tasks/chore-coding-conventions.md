@@ -12,7 +12,9 @@ Also: add python-conventions to the skills list of the implementer, test-writer 
 ## Scope added later
 Decided with the user during this chore:
 - Skill decisions: an override that keeps the base method's meaning may skip its docstring; special methods (`__init__`, `__eq__` and so on) are exempt from the docstring rule; a subclass may narrow a field's type (e.g. `media_type: Literal[MediaType.VIDEO]`); `Member.value` when turning an enum member into text; "split the class" only when its docstring joins two jobs with "and".
-- Skill examples cite a file and a name instead of line numbers; fixed code is used as the good example and the old form is labelled "(before the conventions refactor)".
+- Skill examples cite a file and a name instead of line numbers; fixed code is used as the good example and the old form is labelled "(before the conventions refactor)". Where the codebase has no example, a made-up one is used, labelled "(example, not from our code)".
+- More skill rules: use `Member.value` in database queries; methods named in CLAUDE.md or the domain spec (`get_preview`, `compress`, `append_text`) stay methods rather than becoming `@property`; the docstring rule covers public classes, methods and functions.
+- code-reviewer.md: besides the checklist item, a break of the python-conventions skill is ranked "should fix", not blocking, and the skill is described as project rules, not style nitpicks, so breaks are always reported.
 - code-reviewer listed the violations in src/; these were fixed as a refactor (no behaviour change, tests unchanged):
   - src/db/content_repository.py: `_collection`, `_strip_mongo_id`, `ContentStatus.PUBLISHED.value`, docstrings on public methods
   - src/models/content.py: docstrings on the enums, `publish()`, `unpublish()` and the four content classes
