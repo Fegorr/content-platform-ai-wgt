@@ -66,3 +66,6 @@ JWT_SECRET_KEY=<a long random string>
 - **Task 6:** ContentService must not call `update()` when there are no changes, and must only pass client-editable fields plus `status` (never `id`, `author_id`, `created_at` or `media_type`). Test both.
 - **Task 9:** `UserCreate` must refuse a name of only spaces.
 - **Database tests:** `tests/test_database.py` uses `importlib.reload`; if a later database test behaves oddly, check this first.
+- **Task 6:** annotate CONTENT_TYPES as Mapping[MediaType, type[BaseContent]].
+- **Task 16:** run CI on the minimum Python version from CLAUDE.md.
+- **compress:** compress only returns a new resolution; consider renaming to compressed_resolution (needs a spec and test change). Discuss with Maria.

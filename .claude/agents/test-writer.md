@@ -5,6 +5,7 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 skills:
   - testing-conventions
+  - python-conventions
 # Why a separate test-writer (TDD option): the tests become a fixed contract.
 # The implementer can't change them, so it can't make tests pass by weakening them.
 ---

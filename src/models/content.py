@@ -8,11 +8,15 @@ from pydantic import BaseModel, Field, StringConstraints
 
 
 class ContentStatus(str, Enum):
+    """Whether a content item is visible to everyone or only its author."""
+
     DRAFT = "draft"
     PUBLISHED = "published"
 
 
 class MediaType(str, Enum):
+    """The four kinds of content the platform stores."""
+
     VIDEO = "video"
     IMAGE = "image"
     AUDIO = "audio"
@@ -30,9 +34,11 @@ class BaseContent(BaseModel, ABC):
     media_type: MediaType
 
     def publish(self) -> None:
+        """Set the status to published."""
         self.status = ContentStatus.PUBLISHED
 
     def unpublish(self) -> None:
+        """Set the status back to draft."""
         self.status = ContentStatus.DRAFT
 
     @abstractmethod
@@ -48,6 +54,8 @@ class MediaFile(BaseContent, ABC):
 
 
 class VideoFile(MediaFile):
+    """A video with duration, resolution and frame rate."""
+
     media_type: Literal[MediaType.VIDEO] = MediaType.VIDEO
     duration: int = Field(gt=0)
     resolution: str = Field(pattern=r"^[0-9]+x[0-9]+$")
@@ -62,6 +70,8 @@ class VideoFile(MediaFile):
 
 
 class AudioFile(MediaFile):
+    """An audio file with a duration."""
+
     media_type: Literal[MediaType.AUDIO] = MediaType.AUDIO
     duration: int = Field(gt=0)
 
@@ -70,6 +80,8 @@ class AudioFile(MediaFile):
 
 
 class ImageFile(MediaFile):
+    """An image with a WIDTHxHEIGHT resolution."""
+
     media_type: Literal[MediaType.IMAGE] = MediaType.IMAGE
     resolution: str = Field(pattern=r"^[0-9]+x[0-9]+$")
 
@@ -85,6 +97,8 @@ class ImageFile(MediaFile):
 
 
 class DocumentFile(MediaFile):
+    """A text document with a body."""
+
     media_type: Literal[MediaType.DOCUMENT] = MediaType.DOCUMENT
     body: str = Field(min_length=1)
 

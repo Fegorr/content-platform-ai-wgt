@@ -6,6 +6,7 @@ model: sonnet
 permissionMode: default
 skills:
   - testing-conventions
+  - python-conventions
 ---
 You implement exactly one task from the brief you are given.
 
