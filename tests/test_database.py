@@ -73,3 +73,30 @@ def test_get_content_collection_uses_content_platform_content():
     with patch("src.db.database.get_client", return_value=client):
         result = database.get_content_collection()
     assert result is client["content-platform"]["content"]
+
+
+def test_get_users_collection_uses_content_platform_users():
+    """get_users_collection returns the users collection of the content-platform database."""
+    from src.db import database
+
+    users = object()
+    content = object()
+    fake_client = {"content-platform": {"users": users, "content": content}}
+    with patch("src.db.database.get_client", return_value=fake_client):
+        result = database.get_users_collection()
+    assert result is users
+
+
+def test_get_users_collection_is_not_content_collection():
+    """get_users_collection and get_content_collection return different collections."""
+    from src.db import database
+
+    users = object()
+    content = object()
+    fake_client = {"content-platform": {"users": users, "content": content}}
+    with patch("src.db.database.get_client", return_value=fake_client):
+        users_result = database.get_users_collection()
+        content_result = database.get_content_collection()
+    assert users_result is users
+    assert content_result is content
+    assert users_result is not content_result

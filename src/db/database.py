@@ -21,3 +21,8 @@ def get_client() -> MongoClient:
 def get_content_collection() -> Collection:
     """Return the content collection of the content-platform database."""
     return get_client()["content-platform"]["content"]
+
+
+def get_users_collection() -> Collection:
+    """Return the users collection of the content-platform database."""
+    return get_client()["content-platform"]["users"]
