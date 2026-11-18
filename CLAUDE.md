@@ -55,7 +55,7 @@ Stack: Python 3.11+, FastAPI, MongoDB via pymongo, Pydantic v2, pytest, JWT auth
 - `src/config.py`: reads settings from the environment when called, not at import
 - `src/models/`: content.py (domain models), user.py (User, UserRole), registry.py (media_type -> model class)
 - `src/schemas/`: payloads: <Type>Create, <Type>Update, <Type>Response, UserCreate, UserResponse, TokenResponse
-- `src/db/`: database.py (get_client and the get_..._collection functions), content_repository.py, user_repository.py, token_blocklist_repository.py
+- `src/db/`: database.py (get_client and the get_..._collection functions), content_repository.py, user_repository.py, token_blocklist_repository.py, mongo_utils.py (strip_mongo_id, shared by the repositories)
 - `src/services/`: content_service.py, auth_service.py
 - `src/auth/`: hashing.py, jwt.py, dependencies.py (get_current_user, require_admin)
 - `src/routers/`: auth.py (register, login, logout), users.py, admin.py, videos.py, images.py, audios.py, documents.py

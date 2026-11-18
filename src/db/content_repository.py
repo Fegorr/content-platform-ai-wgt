@@ -1,3 +1,4 @@
+from src.db.mongo_utils import strip_mongo_id
 from src.models.content import ContentStatus
 
 
@@ -6,11 +7,6 @@ class ContentRepository:
 
     def __init__(self, collection):
         self._collection = collection
-
-    @staticmethod
-    def _strip_mongo_id(document: dict) -> dict:
-        """Return a copy of the document without Mongo's _id."""
-        return {key: value for key, value in document.items() if key != "_id"}
 
     def create(self, document: dict) -> str:
         """Insert the document and return its id."""
@@ -22,7 +18,7 @@ class ContentRepository:
         document = self._collection.find_one({"id": content_id})
         if document is None:
             return None
-        return self._strip_mongo_id(document)
+        return strip_mongo_id(document)
 
     def list_visible(self, media_type: str, user_id: str) -> list[dict]:
         """Return published items of this type plus this user's drafts of this type."""
@@ -35,11 +31,11 @@ class ContentRepository:
                 ],
             }
         )
-        return [self._strip_mongo_id(document) for document in cursor]
+        return [strip_mongo_id(document) for document in cursor]
 
     def list_all(self) -> list[dict]:
         """Return every content document of every type and user."""
-        return [self._strip_mongo_id(document) for document in self._collection.find({})]
+        return [strip_mongo_id(document) for document in self._collection.find({})]
 
     def update(self, content_id: str, updates: dict) -> int:
         """Apply the updates and return the matched count (0 if no such id)."""

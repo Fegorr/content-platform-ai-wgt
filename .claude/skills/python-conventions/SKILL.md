@@ -27,10 +27,9 @@ CONTENT_TYPES = MappingProxyType({...})
 def get_preview(self) -> str:
 ```
 
-Good (`src/db/content_repository.py` `ContentRepository._strip_mongo_id`): the name says what is removed.
+Good (`src/db/mongo_utils.py` `strip_mongo_id`): the name says what is removed.
 ```python
-@staticmethod
-def _strip_mongo_id(document: dict) -> dict:
+def strip_mongo_id(document: dict) -> dict:
     """Return a copy of the document without Mongo's _id."""
 ```
 

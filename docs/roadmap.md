@@ -69,10 +69,10 @@ JWT_SECRET_KEY=<a long random string>
 - **Task 6:** annotate CONTENT_TYPES as Mapping[MediaType, type[BaseContent]].
 - **Task 6:** the docstring of `test_get_registry_content_types` in tests/test_models.py still says "maps each media_type string to its class"; the keys are now `MediaType` members. Update it when the registry is touched.
 - **Task 16:** run CI on the minimum Python version from CLAUDE.md.
-- **After task 3 (chore/shared-strip-mongo-id):** once task 3 is done, branch from `task3/user-repository` (rebase onto main later). Replace the private `_strip_mongo_id` in `ContentRepository` and `UserRepository` with one function `strip_mongo_id(document) -> dict` in `src/db/mongo_utils.py`. Update CLAUDE.md "Where things live" (add `mongo_utils.py` under `src/db/`) and the python-conventions skill §1 example that cites `ContentRepository._strip_mongo_id`.
 - **Chore (test cleanup):**
   - Rewrite test_get_content_collection_uses_content_platform_content with a nested-dict fake client; MagicMock returns the same child for any key.
   - tests/test_user_repository.py: `test_create_user_repository_takes_collection` only checks the `__init__` parameter names; make it check that calls reach the given collection, or drop it.
   - tests/test_user_repository.py: `test_get_user_by_email_not_found` should also assert the query, like `test_get_user_by_id_not_found`.
   - tests/test_database.py: `test_get_users_collection_uses_content_platform_users` is covered by `test_get_users_collection_is_not_content_collection`; merge them.
+  - Add a `timeout=` to the `subprocess.run` calls in `test_import_mongo_utils_without_pymongo` (tests/test_mongo_utils.py) and `test_import_models_without_database_or_http` (tests/test_models.py), so a hung child process fails the test instead of hanging the run.
 - **compress:** compress only returns a new resolution; consider renaming to compressed_resolution (needs a spec and test change). Discuss with Maria.
