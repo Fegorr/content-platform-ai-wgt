@@ -2,6 +2,7 @@ from functools import lru_cache
 
 import certifi
 from pymongo import MongoClient
+from pymongo.collection import Collection
 from pymongo.server_api import ServerApi
 
 from src import config
@@ -17,6 +18,6 @@ def get_client() -> MongoClient:
     )
 
 
-def get_content_collection():
+def get_content_collection() -> Collection:
     """Return the content collection of the content-platform database."""
     return get_client()["content-platform"]["content"]

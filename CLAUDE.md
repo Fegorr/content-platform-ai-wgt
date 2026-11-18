@@ -48,7 +48,7 @@ A REST API for a content publishing platform. People sign up, log in and log out
 - Exact fields, constraints, preview strings, endpoints and stored-document shape: docs/domain-spec.md. Read it before writing models, schemas, routers or their tests.
 - Task order and the finished-platform picture: docs/roadmap.md
 
-Stack: Python, FastAPI, MongoDB via pymongo, Pydantic v2, pytest, JWT auth (PyJWT HS256+pwdlib[argon2] password hashing. OAuth2password bearer login). Access tokens expire after 30 minutes. Secrets (MONGODB_URI, JWT_SECRET_KEY) come from .env.
+Stack: Python 3.11+, FastAPI, MongoDB via pymongo, Pydantic v2, pytest, JWT auth (PyJWT HS256+pwdlib[argon2] password hashing. OAuth2password bearer login). Access tokens expire after 30 minutes. Secrets (MONGODB_URI, JWT_SECRET_KEY) come from .env.
 
 ## Where things live
 - `src/main.py`: created the app and includes the routers
@@ -138,6 +138,7 @@ These questions have no answer yet. If your task depends on one of them, stop an
 - One PR per task. Before pushing, run git pull origin main --rebase and make sure pytest passes.
 - Never commit .env.
 - Every package you import goes in requirements.txt (including pymongo, PyJWT, pwdlib[argon2], python-multipart, email-validator, httpx).
+- Follow the python-conventions skill for naming, OOP, data types and comments.
 
 ## Compact instructions
 When compacting, keep: the current task and branch, the list of changed files, open questions, and the last test command with its result.

@@ -1,8 +1,12 @@
-from src.models.content import AudioFile, DocumentFile, ImageFile, VideoFile
+from types import MappingProxyType
 
-CONTENT_TYPES = {
-    "video": VideoFile,
-    "image": ImageFile,
-    "audio": AudioFile,
-    "document": DocumentFile,
-}
+from src.models.content import AudioFile, DocumentFile, ImageFile, MediaType, VideoFile
+
+CONTENT_TYPES = MappingProxyType(
+    {
+        MediaType.VIDEO: VideoFile,
+        MediaType.IMAGE: ImageFile,
+        MediaType.AUDIO: AudioFile,
+        MediaType.DOCUMENT: DocumentFile,
+    }
+)
