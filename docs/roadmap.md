@@ -75,4 +75,6 @@ JWT_SECRET_KEY=<a long random string>
   - tests/test_user_repository.py: `test_get_user_by_email_not_found` should also assert the query, like `test_get_user_by_id_not_found`.
   - tests/test_database.py: `test_get_users_collection_uses_content_platform_users` is covered by `test_get_users_collection_is_not_content_collection`; merge them.
   - Add a `timeout=` to the `subprocess.run` calls in `test_import_mongo_utils_without_pymongo` (tests/test_mongo_utils.py) and `test_import_models_without_database_or_http` (tests/test_models.py), so a hung child process fails the test instead of hanging the run.
+  - tests/test_jwt.py: in `test_decode_access_token_other_algorithm`, first decode the HS512 token with `algorithms=["HS512"]`, so the test proves the token is valid apart from its algorithm.
+  - tests/test_jwt.py: rename `test_token_constants` to follow `test_<action>_<subject>` (e.g. `test_get_token_constants`).
 - **compress:** compress only returns a new resolution; consider renaming to compressed_resolution (needs a spec and test change). Discuss with Maria.
