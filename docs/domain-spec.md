@@ -142,6 +142,22 @@ These are never passed to the repository either. `create_content` and `list_all_
 | someone else's, published | 200 | yes | 403 | 403 (admin: 200) |
 | someone else's, draft | 404 (admin: 200) | no | 404 (admin: 403) | 404 (admin: 200) |
  
+## Auth helpers (`src/config.py`, `src/auth/`)
+Pure functions: no routes, no services, no database. The secret is read when called, never at import.
+
+`src/config.py`:
+- `get_jwt_secret_key() -> str`: returns `JWT_SECRET_KEY` from the environment. Missing or empty → `RuntimeError("JWT_SECRET_KEY is not set")`.
+
+`src/auth/hashing.py` (pwdlib, argon2):
+- `hash_password(password: str) -> str`: returns an argon2 hash; the same password gives a different hash each time.
+- `verify_password(password: str, hashed_password: str) -> bool`: True for the right password, False for a wrong one or a malformed hash (never raises).
+
+`src/auth/jwt.py` (PyJWT):
+- `ACCESS_TOKEN_EXPIRE_MINUTES = 30`
+- `ALGORITHM = "HS256"`
+- `create_access_token(user_id: str) -> str`: payload has exactly `sub` (user_id), `jti` (new UUID string) and `exp` (now UTC + 30 minutes).
+- `decode_access_token(token: str) -> dict | None`: the payload for a valid token, decoded with `algorithms=[ALGORITHM]` and `sub`, `jti`, `exp` required. None for any PyJWT error (expired, wrong secret, wrong algorithm, malformed, missing claim). A missing secret still raises `RuntimeError`.
+
 ## Auth service (`src/services/auth_service.py`)
 `AuthService(user_repository, token_blocklist_repository)`:
 - `register_user(name, email, password) -> dict | None`: lowercases the email; if `get_by_email` finds it, return None (router → 409) without saving. Otherwise build a `User` (role `user`) with `hash_password(password)`, save it, return the stored dict.
