@@ -68,6 +68,7 @@ Stack: Python 3.11+, FastAPI, MongoDB via pymongo, Pydantic v2, pytest, JWT auth
 
 ## Architecture (required, not optional)
 - Requests go Router → Service → Repository. Only repositories touch the database.
+- FastAPI dependencies such as get_current_user count as routers: they call a service, never a repository.
 - Models stay pure: no file reads, no DB calls, no HTTP. Only fields, validation and domain behaviour (publish(), unpublish(), get_preview(), compress(), append_text()).
 - Payload models (Create/Update/Response) live in src/schemas/, are flat and separate from domain models. Update models make every field optional. Routers convert payloads into domain models.
 - The server sets these fields, never the client, and they are not on Create?Update payloads:
@@ -98,7 +99,7 @@ Stack: Python 3.11+, FastAPI, MongoDB via pymongo, Pydantic v2, pytest, JWT auth
   - Email already registered -> 409 "Email already registered".
   - Invalid email, empty name, or password shorter than 8 characters -> 422.
   - A role sent by the client is ignored.
-- Login: POST /login takes OAuth2 form data (username = email, password) via  OAuth2PasswordRequestForm (needs python-multipart), so the Authorize button in /docs works.
+- Login: POST /login takes OAuth2 form data (username = email, password) via  OAuth2PasswordRequestForm (needs python-multipart), so the Authorize button in /docs works (from Task 7, when the first route depends on get_current_user).
   - Success -> {"access_token": "...", "token_type": "bearer"}. Unknown email or wrong password -> 401 "Invalid email or password" (same message for both).
 - Token payload: sub = user id (string), jti = a new UUID per token (the token's own id), exp = now (UTC) + 30 minutes. Decode with algorithms=["HS256"].
 - Logout: POST /logout(needs a token) saves the token's jti and exp with TokenBlocklistRepository.add -> 200 {"message": "Logged out"}. From then on that token gets 401, even before it expires. Other tokens of the same user keep working.
@@ -109,11 +110,13 @@ Stack: Python 3.11+, FastAPI, MongoDB via pymongo, Pydantic v2, pytest, JWT auth
 ## Open decisions
 These questions have no answer yet. If your task depends on one of them, stop and ask. Don't pick an answer yourself.
   1. File uploads: should the API accept real files (video, image, audio) and store them, or keep taking a url that points to a file stored somewhere else? Until decided, content is created with a url only.
+  2. Repository Protocols: should the repositories and the fakes in tests/conftest.py share a typing.Protocol? Ask Maria. Until decided, the fakes just use the same method names.
+  3. Package versions: should requirements.txt pin versions (e.g. fastapi/starlette)? Ask Maria. Until decided, versions stay unpinned.
 
 ## Commands
 - Install: pip install -r requirements.txt
 - Run tests: pytest (pytest.ini sets pythonpath = . and testpaths = tests)
-- Start the API: uvicorn src.main:app --reload, then open http://127.0.0.1:8000/docs
+- Start the API: uvicorn src.main:app --env-file .env --reload, then open http://127.0.0.1:8000/docs (no load_dotenv() in src/)
 - Create an admin (on your own computer, with .env set): python scripts/create_admin.py
 
 ## Testing

@@ -142,10 +142,27 @@ These are never passed to the repository either. `create_content` and `list_all_
 | someone else's, published | 200 | yes | 403 | 403 (admin: 200) |
 | someone else's, draft | 404 (admin: 200) | no | 404 (admin: 403) | 404 (admin: 200) |
  
+## Auth helpers (`src/config.py`, `src/auth/`)
+Pure functions: no routes, no services, no database. The secret is read when called, never at import.
+
+`src/config.py`:
+- `get_jwt_secret_key() -> str`: returns `JWT_SECRET_KEY` from the environment. Missing or empty → `RuntimeError("JWT_SECRET_KEY is not set")`.
+
+`src/auth/hashing.py` (pwdlib, argon2):
+- `hash_password(password: str) -> str`: returns an argon2 hash; the same password gives a different hash each time.
+- `verify_password(password: str, hashed_password: str) -> bool`: True for the right password, False for a wrong one or a malformed hash (never raises).
+
+`src/auth/jwt.py` (PyJWT):
+- `ACCESS_TOKEN_EXPIRE_MINUTES = 30`
+- `ALGORITHM = "HS256"`
+- `create_access_token(user_id: str) -> str`: payload has exactly `sub` (user_id), `jti` (new UUID string) and `exp` (now UTC + 30 minutes).
+- `decode_access_token(token: str) -> dict | None`: the payload for a valid token, decoded with `algorithms=[ALGORITHM]` and `sub`, `jti`, `exp` required. None for any PyJWT error (expired, wrong secret, wrong algorithm, malformed, missing claim). A missing secret still raises `RuntimeError`.
+
 ## Auth service (`src/services/auth_service.py`)
-`AuthService(user_repository, token_blocklist_repository)`:
+`AuthService(user_repository, token_blocklist_repository)` when finished. Built up over several tasks: Task 5 has `AuthService(user_repository)` with only `authenticate_user` and `get_user_by_id`; Task 9 adds `register_user`; Task 10 adds `change_password`; Task 11 adds the `token_blocklist_repository` parameter, `logout` and `is_token_revoked`.
 - `register_user(name, email, password) -> dict | None`: lowercases the email; if `get_by_email` finds it, return None (router → 409) without saving. Otherwise build a `User` (role `user`) with `hash_password(password)`, save it, return the stored dict.
-- `authenticate_user(email, password) -> dict | None`: lowercases the email; None for unknown email or wrong password.
+- `authenticate_user(email, password) -> dict | None`: lowercases the email; None for unknown email or wrong password. For an unknown email it still calls `verify_password` once, against a fixed dummy argon2 hash (module constant), so an unknown email and a wrong password take about the same time (no user enumeration through timing).
+- `get_user_by_id(user_id) -> dict | None`: the user without `hashed_password` (id, name, email, role), or None. Used by `get_current_user`, which never calls the repository itself.
 - `change_password(user_id, current_password, new_password) -> PasswordResult` (str Enum), checked in this order:
   1. `current_password` doesn't verify → `WRONG_CURRENT` (router → 400 `"Current password is incorrect"`)
   2. `new_password` verifies against the current hash (same as the old one) → `SAME_AS_OLD` (router → 400 `"New password must be different"`)
@@ -176,4 +193,6 @@ These are never passed to the repository either. `create_content` and `list_all_
 | DELETE | /videos/{video_id} | token | 200 `{"message": "Video deleted"}` | 401, 403, 404 |
  
 Same for `/images` (Image), `/audios` (Audio), `/documents` (Document). 404 detail: `"<Type> not found"`. 403 detail: `"You can only change your own content"`. Admin-route 403 detail: `"Admin access required"`.
+
+401 details: `/login` with a wrong email or password → `"Invalid email or password"`. Missing token → `"Not authenticated"` (FastAPI's default). Invalid, expired or revoked token, or a user that no longer exists → `"Could not validate credentials"`. Every 401 carries the header `WWW-Authenticate: Bearer`.
  
