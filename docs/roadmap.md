@@ -11,9 +11,9 @@ Each task = one branch, one PR, one run of the agent pipeline. Write the full br
 | 2 | Config (`get_mongodb_uri` only) + lazy DB connection + ContentRepository (incl. `list_all`) | src/config.py, src/db/database.py, content_repository.py, tests | URI read at call time; no connection at import; `_id` stripped; queries use `id`; `list_visible` filters in the query |
 | 3 | UserRepository | src/db/user_repository.py, tests | get_by_id, get_by_email, create |
 | 4 | Extend config.py with the JWT secret, hashing, JWT | src/config.py, src/auth/hashing.py, jwt.py, tests | secret read at call time; expired/invalid token → None |
-| 5 | Auth service, /login, get_current_user | src/services/auth_service.py, src/routers/auth.py, src/auth/dependencies.py, src/utils/dependencies.py, conftest fakes, tests | login form works in /docs; 401s carry WWW-Authenticate |
+| 5 | Auth service, /login, get_current_user | src/services/auth_service.py, src/schemas/auth.py (TokenResponse), src/routers/auth.py, src/auth/dependencies.py, src/utils/dependencies.py, src/main.py (auth router only), conftest fakes, tests | /docs shows POST /login as a form, and Try it out with any email and password returns 401 "Invalid email or password", which proves the real database connection (`uvicorn src.main:app --env-file .env --reload`); 401s carry WWW-Authenticate |
 | 6 | ContentService (incl. ownership, draft privacy, admin delete, `preview`, `can_edit`, `can_delete` on returned items) | src/services/content_service.py, tests (Mock repo) | all service rules in domain-spec, incl. the "Who can do what" table |
-| 7 | Video schemas + router | src/schemas/video.py, src/routers/videos.py, src/main.py, tests/test_videos.py | full required-test table passes |
+| 7 | Video schemas + router | src/schemas/video.py, src/routers/videos.py, include the video router in src/main.py, tests/test_videos.py | full required-test table passes |
 | 8 | Image, audio, document routers | schemas + routers + tests | same table for each type |
  
 Task 0 `requirements.txt` will need at least:
@@ -36,7 +36,7 @@ JWT_SECRET_KEY=<a long random string>
  
 | # | Task | Why |
 |---|---|---|
-| 9 | Sign-up: `POST /register` + `AuthService.register_user` | real users can create accounts; duplicate emails are refused (409) |
+| 9 | Sign-up: `POST /register` + `AuthService.register_user` | real users can create accounts; duplicate emails are refused (409); manual check: register in /docs, then Try it out on POST /login with that user returns a token (the real-user login check moved here from Task 5) |
 | 10 | `GET /users/me` + `PATCH /users/me/password` | see who is logged in; change password (wrong current → 400, same as old → 400) |
 | 11 | Logout: `jti` in tokens, `TokenBlocklistRepository`, `POST /logout`, `get_current_user` checks it | a logged-out token stops working straight away |
 | 12 | Admin: `require_admin`, `ContentService.list_all_content`, `GET /admin/content` | the admin from the use-case diagram can see all content (admin delete is already in the service from task 6) |
@@ -68,6 +68,9 @@ JWT_SECRET_KEY=<a long random string>
 - **Database tests:** `tests/test_database.py` uses `importlib.reload`; if a later database test behaves oddly, check this first.
 - **Task 6:** annotate CONTENT_TYPES as Mapping[MediaType, type[BaseContent]].
 - **Task 6:** the docstring of `test_get_registry_content_types` in tests/test_models.py still says "maps each media_type string to its class"; the keys are now `MediaType` members. Update it when the registry is touched.
+- **Task 7:** the Authorize button check moves here from Task 5. FastAPI only adds the OAuth2 security scheme once a route depends on `oauth2_scheme` (through `get_current_user`), which `/videos` is the first to do. Test that `app.openapi()` has an OAuth2 password flow with `tokenUrl` "login", and check by hand that Authorize in /docs works.
+- **pytest.ini Starlette filter (see CLAUDE.md Open decision 3):** pytest.ini ignores Starlette's httpx deprecation warning by its class, `starlette.exceptions.StarletteDeprecationWarning`. requirements.txt is unpinned, so a Starlette upgrade that renames or moves that class makes the whole suite fail at startup. When decision 3 is answered, pin fastapi/starlette or replace the filter (e.g. by moving the TestClient to the package Starlette recommends).
+- **Task 13:** scripts/create_admin.py needs MONGODB_URI: decide how it gets it (for example, a documented command that loads .env) and write it in CLAUDE.md Commands.
 - **Task 16:** run CI on the minimum Python version from CLAUDE.md.
 - **Chore (test cleanup):**
   - Rewrite test_get_content_collection_uses_content_platform_content with a nested-dict fake client; MagicMock returns the same child for any key.

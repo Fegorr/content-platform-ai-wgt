@@ -8,7 +8,7 @@ Copy the patterns, not the exact values. The other content routers follow the sa
 import os
 
 # Must run before importing the app: tests never read .env
-os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key")
+os.environ["JWT_SECRET_KEY"] = "test-secret-key-at-least-32-characters-long"
 
 import pytest
 from src.main import app
@@ -107,19 +107,25 @@ def headers_for(user):
     return {"Authorization": f"Bearer {create_access_token(user['id'])}"}
 
 
+# Hashed once per session: argon2 is slow and the autouse fixture runs for every test.
+_TEST_USER = make_user(TEST_USER_ID, "Louise", "louise@test.com", "louise_pass_1")
+_OTHER_USER = make_user(OTHER_USER_ID, "Sylvie", "sylvie@test.com", "sylvie_pass_1")
+_ADMIN_USER = make_user(ADMIN_USER_ID, "Ada", "ada@test.com", "ada_pass_123", role="admin")
+
+
 @pytest.fixture
 def test_user():
-    return make_user(TEST_USER_ID, "Louise", "louise@test.com", "louise_pass_1")
+    return dict(_TEST_USER)
 
 
 @pytest.fixture
 def other_user():
-    return make_user(OTHER_USER_ID, "Sylvie", "sylvie@test.com", "sylvie_pass_1")
+    return dict(_OTHER_USER)
 
 
 @pytest.fixture
 def admin_user():
-    return make_user(ADMIN_USER_ID, "Ada", "ada@test.com", "ada_pass_123", role="admin")
+    return dict(_ADMIN_USER)
 
 
 @pytest.fixture(autouse=True)
